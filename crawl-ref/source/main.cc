@@ -2244,7 +2244,7 @@ void process_command(command_type cmd, command_type prev_cmd)
         update_screen();
         break;
     case CMD_COMMAND_PALETTE:
-         display_command_palette();
+         process_command(display_command_palette(), CMD_COMMAND_PALETTE);
          break;
     case CMD_DISPLAY_MUTATIONS:
         display_mutations();

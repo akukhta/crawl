@@ -3158,7 +3158,7 @@ void render()
     ui_root.render();
     ui_root.swap_buffers();
 }
-
+#define USE_TILE_LOCAL
 void pump_events(int wait_event_timeout)
 {
     int macro_key = macro_buf_get();

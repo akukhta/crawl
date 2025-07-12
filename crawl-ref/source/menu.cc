@@ -195,7 +195,7 @@ protected:
     bool m_mouse_pressed = false;
     int m_mouse_x = -1, m_mouse_y = -1;
     void update_hovered_entry(bool force=false);
-
+    void click_hovered_entry();
     void mark_buffers_dirty();
     void pack_buffers();
 
@@ -919,6 +919,33 @@ void UIMenu::set_hovered_entry(int i)
 }
 
 #ifdef USE_TILE_LOCAL
+void UIMenu::click_hovered_entry()
+{
+    const int x = m_mouse_x - m_region.x,
+          y = m_mouse_y - m_region.y;
+    int vis_min, vis_max;
+    is_visible_item_range(&vis_min, &vis_max);
+
+    for (int i = vis_min; i < vis_max; ++i)
+    {
+        const auto& entry = item_info[i];
+        if (entry.heading)
+            continue;
+        const auto me = m_menu->items[i];
+
+        const int w = m_region.width / m_num_columns;
+        const int entry_x = entry.column * w;
+        const int entry_h = row_heights[entry.row+1] - row_heights[entry.row];
+        if (x >= entry_x && x < entry_x+w && y >= entry.y && y < entry.y+entry_h)
+        {
+            if (me->on_click)
+            {
+                me->on_click(*me);
+            }
+        }
+    }
+}
+
 void UIMenu::update_hovered_entry(bool force)
 {
     const int x = m_mouse_x - m_region.x,
@@ -1019,9 +1046,14 @@ bool UIMenu::on_event(const Event& ev)
     {
         m_mouse_pressed = true;
         do_layout(m_region.width, m_num_columns);
-        update_hovered_entry(true);
+        click_hovered_entry();
         mark_buffers_dirty();
         _expose();
+
+        if (this->m_menu->exit_on_click())
+        {
+            this->m_menu->complete = true;
+        }
     }
     else if (event.type() == Event::Type::MouseUp
             && (event.button() == MouseEvent::Button::Left
@@ -1534,10 +1566,10 @@ vector<MenuEntry *> Menu::show(bool reuse_selections)
 
 void Menu::do_menu()
 {
-    bool done = false;
+    complete = false;
     m_ui.popup = make_shared<UIMenuPopup>(m_ui.vbox, this);
 
-    m_ui.popup->on_keydown_event([this, &done](const KeyEvent& ev) {
+    m_ui.popup->on_keydown_event([this](const KeyEvent& ev) {
         // uses numpad number keys for navigation
         int key = remap_numpad ? numpad_to_regular(ev.key(), true) : ev.key();
         if (m_filter)
@@ -1564,7 +1596,9 @@ void Menu::do_menu()
             update_title();
             return true;
         }
-        done = !process_key(key);
+
+        auto rc = !process_key(key);
+        complete = (complete ? true : rc);
         return true;
     });
 
@@ -1579,8 +1613,8 @@ void Menu::do_menu()
 
     alive = true;
     if (on_show)
-        done = !on_show();
-    while (alive && !done && !crawl_state.seen_hups)
+        complete = !on_show();
+    while (alive && !complete && !crawl_state.seen_hups)
     {
 #ifdef USE_TILE_WEB
         if (_webtiles_title_changed)
@@ -1898,6 +1932,11 @@ bool Menu::process_command(command_type cmd)
 #endif
 
     return ret;
+}
+
+bool Menu::exit_on_click() const
+{
+    return false;
 }
 
 bool Menu::skip_process_command(int keyin)
