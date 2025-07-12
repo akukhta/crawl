@@ -46,6 +46,25 @@ void CommandPalette::select_item_index(int idx, int qty)
     Menu::select_item_index(idx, qty);
 }
 
+void CommandPalette::update_title()
+{
+    auto fs = calc_title();
+
+    if (title)
+    {
+        fs.textcolour(title->colour);
+        fs += title->get_text() + " ";
+    }
+
+    if (title2)
+    {
+        fs.textcolour(title2->colour);
+        fs += title2->get_text();
+    }
+
+    m_ui.title->set_text(fs);
+}
+
 void CommandPalette::on_command_click(CommandPaletteEntry& entry)
 {
     selectedCommand = &entry;
@@ -61,7 +80,12 @@ command_type display_command_palette()
                 MEL_TITLE);
     me->colour = LIGHTBLUE;
 
-    menu.set_title(me, true, true);
+    MenuEntry* inputBox = new MenuEntry("sometext", MEL_TITLE);
+    inputBox->colour = GREEN;
+
+    menu.set_title(inputBox, false);
+    menu.set_title(me, true);
+    //menu.set_min_col_width(2);
 
     for (auto const it : commands)
     {
