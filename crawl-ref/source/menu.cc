@@ -2,7 +2,7 @@
  * @file
  * @brief Menus and associated malarkey.
 **/
-
+#define USE_TILE_LOCAL
 #include "AppHdr.h"
 
 #include "menu.h"
@@ -556,7 +556,6 @@ int UIMenu::get_max_viewport_height()
     return max_viewport_height;
 }
 #endif
-
 void UIMenu::_render()
 {
 #ifdef USE_TILE_LOCAL
@@ -1141,7 +1140,7 @@ void UIMenu::pack_buffers()
         {
             bool hovered = i == m_hover_idx
                 && !entry.heading
-                && me->hotkeys_count() > 0;
+                && (this->m_menu->tag == "cmd_palette" ? true : me->hotkeys_count() > 0);
 
             if (me->selected() && !m_menu->is_set(MF_QUIET_SELECT))
             {
