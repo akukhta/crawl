@@ -20,6 +20,30 @@ static std::unordered_map<std::string, command_type> commands = {
     {"Attack Down", CMD_ATTACK_DOWN},
     {"Rest", CMD_REST},
     {"Display Inventory", CMD_DISPLAY_INVENTORY},
+    {"Display Known Items", CMD_DISPLAY_KNOWN_OBJECTS},
+    {"Display Map", CMD_DISPLAY_MAP},
+    {"Display Skills", CMD_DISPLAY_SKILLS},
+    {"Display Mutations", CMD_DISPLAY_MUTATIONS},
+    {"Display Religion", CMD_DISPLAY_RELIGION},
+    {"Display Runes", CMD_DISPLAY_RUNES},
+    {"Save Game and quit", CMD_SAVE_GAME},
+    {"Quit", CMD_QUIT},
+    {"Autoexplore", CMD_EXPLORE},
+    {"Autofight", CMD_AUTOFIGHT},
+    {"Autofight without movement", CMD_AUTOFIGHT_NOMOVE},
+    {"Memorise Spell", CMD_MEMORISE_SPELL},
+    {"Go upstairs", CMD_GO_UPSTAIRS},
+    {"Go downstairs", CMD_GO_DOWNSTAIRS},
+    {"Zoom in", CMD_ZOOM_IN},
+    {"Zoom out", CMD_ZOOM_OUT},
+    {"Edit player's tile", CMD_EDIT_PLAYER_TILE},
+    {"Game Menu", CMD_GAME_MENU},
+    {"Cast spell", CMD_CAST_SPELL},
+    {"List armour", CMD_LIST_ARMOUR},
+    {"List gold", CMD_LIST_GOLD},
+    {"List jewellery", CMD_LIST_JEWELLERY},
+    {"Toggle auto pickup", CMD_TOGGLE_AUTOPICKUP},
+    {"Toggle Sound", CMD_TOGGLE_SOUND},
 };
 
 CommandPaletteEntry::CommandPaletteEntry(const string &txt, command_type cmd)
@@ -74,7 +98,7 @@ bool CommandPalette::process_key(int keyin)
 
     if (c == '\b')
     {
-        if (title2 && title2->text.length() > 0)
+        if (title2 && !title2->text.empty())
         {
             title2->text.resize(title2->text.length() - 1);
             update_title();
