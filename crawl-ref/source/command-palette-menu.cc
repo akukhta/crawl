@@ -11,6 +11,8 @@
 #include "macro.h"
 #include <unordered_map>
 
+#include "easy-confirm-type.h"
+
 static std::unordered_map<std::string, command_type> commands = {
     {"Attack Left", CMD_ATTACK_LEFT},
     {"Attack Right", CMD_ATTACK_RIGHT},
@@ -32,6 +34,7 @@ void CommandPalette::add_command(CommandPaletteEntry *entry)
         on_command_click(dynamic_cast<CommandPaletteEntry&>(e));
     };
 
+    all_entries.push_back(entry);
     add_entry(entry);
 }
 
@@ -65,6 +68,83 @@ void CommandPalette::update_title()
     m_ui.title->set_text(fs);
 }
 
+bool CommandPalette::process_key(int keyin)
+{
+    char c = static_cast<char>(keyin);
+
+    if (c == '\b')
+    {
+        if (title2 && title2->text.length() > 0)
+        {
+            title2->text.resize(title2->text.length() - 1);
+            update_title();
+            undo_update_items();
+        }
+
+        return true;
+    }
+
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+    {
+        if (title2)
+        {
+            title2->text += c;
+            update_title();
+            update_items(title2->text);
+            update_menu(true);
+        }
+
+        return true;
+    }
+
+    return Menu::process_key(keyin);
+}
+
+void CommandPalette::update_items(std::string const &pattern)
+{
+    items.clear();
+    matching_entries.clear();
+
+    for (size_t i = 0; i < all_entries.size(); ++i)
+    {
+        if (all_entries[i]->text.find(pattern) != std::string::npos)
+        {
+            matching_entries.push_back(i);
+            items.push_back(all_entries[i]);
+        }
+    }
+
+    entries_stack.push(matching_entries);
+}
+
+void CommandPalette::undo_update_items()
+{
+    if (!entries_stack.empty())
+    {
+        items.clear();
+        entries_stack.pop();
+
+        if (entries_stack.empty())
+        {
+            for (auto const &it : all_entries)
+            {
+                add_entry(it);
+            }
+        }
+        else
+        {
+            matching_entries = entries_stack.top();
+
+            for (auto const it : matching_entries)
+            {
+                add_entry(all_entries[it]);
+            }
+        }
+        update_menu(true);
+    }
+
+}
+
 void CommandPalette::on_command_click(CommandPaletteEntry& entry)
 {
     selectedCommand = &entry;
@@ -76,11 +156,11 @@ command_type display_command_palette()
     CommandPalette menu;
 
     MenuEntry* me =
-            new MenuEntry("Command Palette",
+            new MenuEntry("Command Palette:",
                 MEL_TITLE);
     me->colour = LIGHTBLUE;
 
-    MenuEntry* inputBox = new MenuEntry("sometext", MEL_TITLE);
+    MenuEntry* inputBox = new MenuEntry("", MEL_TITLE);
     inputBox->colour = GREEN;
 
     menu.set_title(inputBox, false);
