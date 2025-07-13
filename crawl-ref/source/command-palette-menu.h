@@ -41,9 +41,12 @@ private:
 
     void on_command_click(CommandPaletteEntry& entry);
     std::vector<MenuEntry*> all_entries;
-    std::vector<size_t> matching_entries;
+    std::vector<MenuEntry*> matching_entries;
 
-    std::stack<std::vector<size_t>> entries_stack;
+    void remove_char();
+    void add_char(char c);
+
+    std::stack<std::vector<MenuEntry*>> entries_stack;
 };
 
 command_type display_command_palette();
