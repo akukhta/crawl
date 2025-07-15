@@ -160,10 +160,20 @@ void CommandPalette::undo_update_items()
         items.clear();
         entries_stack.pop();
 
-        auto const& source = entries_stack.empty()
-            ? all_entries : matching_entries = entries_stack.top();
+        std::vector<MenuEntry*>* source = nullptr;
 
-        std::for_each(source.begin(), source.end(),
+        if (entries_stack.empty())
+        {
+            source = &all_entries;
+            matching_entries.clear();
+        }
+        else
+        {
+            matching_entries = entries_stack.top();
+            source = &matching_entries;
+        }
+
+        std::for_each(source->begin(), source->end(),
             [this](MenuEntry *entry)
             {
                 entry->text =format_matching_string(dynamic_cast<CommandPaletteEntry *>(entry)->command_description, title2->text);
